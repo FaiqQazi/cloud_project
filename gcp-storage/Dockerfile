@@ -1,8 +1,7 @@
-FROM node:10.15.2-alpine
+FROM node:16-alpine
 
 WORKDIR /usr/src/app
 COPY package*.json ./
-
-CMD npm config set cache-min 9999999 && \
-    npm install && \
-    npm run start:dev
+RUN npm install --only=production
+COPY ./src ./src
+CMD npm start

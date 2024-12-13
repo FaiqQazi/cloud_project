@@ -68,7 +68,38 @@ app.get("/video", (req, res) => {
         });
 });
 
+
+// HTTP POST route to upload a video to GCS storage
+app.post("/upload", (req, res) => {
+    const videoId = req.headers.id;
+    const contentType = req.headers["content-type"];
+
+    if (!videoId) {
+        return res.status(400).send("Missing 'id' header for video upload.");
+    }
+
+    console.log(`Uploading video with ID: ${videoId}`);
+
+    const file = bucket.file(videoId);
+
+    const writeStream = file.createWriteStream({
+        metadata: {
+            contentType: contentType,
+        },
+    });
+
+    req.pipe(writeStream)
+        .on('finish', () => {
+            console.log(`Video uploaded successfully with ID: ${videoId}`);
+            res.sendStatus(200);
+        })
+        .on('error', err => {
+            console.error('Error occurred while uploading the video to GCS:', err);
+            res.sendStatus(500);
+        });
+});
+
 // Starts the HTTP server
 app.listen(PORT, () => {
-    console.log(`Microservice online, listening on port ${PORT}`);
+    console.log(`Microservice online for video storage listening on port ${PORT}`);
 });

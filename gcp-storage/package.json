@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./src/index.js",
+    "start:dev": "nodemon ./src/index.js"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +15,8 @@
     "express": "^4.21.2",
     "http": "0.0.1-security",
     "mongodb": "^6.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.18"
   }
 }

@@ -85,8 +85,8 @@ function main() {
 }
 
 main()
-    .then(() => console.log("Microservice online."))
+    .then(() => console.log("Microservice online of video streaming is online "))
     .catch(err => {
-        console.error("Microservice failed to start.");
+        console.error("Microservice of video streaming failed to start.");
         console.error(err && err.stack || err);
     });

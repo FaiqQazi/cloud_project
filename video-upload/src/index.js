@@ -1,8 +1,13 @@
 const express = require("express");
 const http = require("http");
 const mongodb = require("mongodb");
+const cors = require("cors"); // Import CORS middleware
 
 const app = express();
+
+// Enable CORS for all routes
+app.use(cors());  // Allows all origins, you can customize if needed
+
 
 // Ensure all required environment variables are set
 if (!process.env.PORT) {

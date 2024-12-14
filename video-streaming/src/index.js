@@ -1,8 +1,12 @@
 const express = require("express");
 const http = require("http");
 const mongodb = require("mongodb");
+const cors = require("cors"); // Import CORS middleware
 
 const app = express();
+
+// Enable CORS for all routes
+app.use(cors());  // Allows all origins, you can customize if needed
 
 // Ensure all required environment variables are set
 if (!process.env.PORT) {
@@ -39,27 +43,54 @@ function main() {
             const db = client.db(DBNAME);
             const userVideosCollection = db.collection("user_videos"); // Access the user_videos collection
 
-            app.get("/video", (req, res) => {
-                const userId = parseInt(req.query.userId);  // Get the userId from the query parameters
+            app.get("/videos", (req, res) => {
+                console.log("Received request for videos with userId:", req.query.userId);
+                const userId = parseInt(req.query.userId); // Get userId from query parameters
 
-                // Query the 'user_videos' collection to get the associated video path (videoId is the path)
-                userVideosCollection.findOne({ userId: userId })
-                    .then(userVideoRecord => {
-                        if (!userVideoRecord) {
-                            res.status(404).send("User has no videos.");
+                userVideosCollection.find({ userId: userId }).toArray() // Fetch all videos for the user
+                    .then(videoRecords => {
+                        if (videoRecords.length === 0) {
+                            res.status(404).send("No videos found for this user.");
                             return;
                         }
 
-                        const videoPath = userVideoRecord.videoId;  // videoId now contains the path directly
-                        console.log(`User ${userId} has video path ${videoPath}`);
+                        const videoPaths = videoRecords.map(record => ({
+                            videoId: record.videoId
+                            
+                        }));
 
-                        // Forward the request to the video storage microservice with the video path
-                        const forwardRequest = http.request( // Forward the request to the video storage microservice.
+                        res.status(200).json(videoPaths);
+                    })
+                    .catch(err => {
+                        console.error("Failed to fetch user videos.");
+                        console.error(err && err.stack || err);
+                        res.sendStatus(500);
+                    });
+            });
+
+            app.get("/video", (req, res) => {
+                console.log("Received request for videos with userId:", req.query.userId);
+                const userId = parseInt(req.query.userId); // Get userId from query parameters
+                const videoId = req.query.videoId; // Get videoId from query parameters
+            
+                // Query the 'user_videos' collection to find the video matching userId and videoId
+                userVideosCollection.findOne({ userId: userId, videoId: videoId })
+                    .then(userVideoRecord => {
+                        if (!userVideoRecord) {
+                            res.status(404).send("No matching video found for this useraltogether not a a single video");
+                            return;
+                        }
+            
+                        const videoPath = userVideoRecord.videoId; // videoId now contains the path directly
+                        console.log(`User ${userId} requested video ${videoId} with path ${videoPath}`);
+            
+                        // Forward the request to the video storage microservice
+                        const forwardRequest = http.request(
                             {
                                 host: VIDEO_STORAGE_HOST,
                                 port: VIDEO_STORAGE_PORT,
-                                path: `/video?path=${encodeURIComponent(videoPath)}`,  // Use the videoPath
-                                method: 'GET',
+                                path: `/video?path=${encodeURIComponent(videoPath)}`, // Use the videoPath
+                                method: "GET",
                                 headers: req.headers
                             },
                             forwardResponse => {
@@ -67,16 +98,16 @@ function main() {
                                 forwardResponse.pipe(res);
                             }
                         );
-                        
+            
                         req.pipe(forwardRequest);
                     })
                     .catch(err => {
-                        console.error("Failed to find user video record.");
+                        console.error("Failed to find the video record.");
                         console.error(err && err.stack || err);
                         res.sendStatus(500);
                     });
             });
-
+            
             // Start the HTTP server
             app.listen(PORT, () => {
                 console.log(`Microservice listening on port ${PORT}.`);

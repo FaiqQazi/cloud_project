@@ -14,7 +14,7 @@ services:
       - REACT_APP_VIDEO_STREAMING_HOST=video-streaming
       - REACT_APP_VIDEO_STREAMING_PORT=80
     restart: "no"
-    
+
   video-upload:
     image: video-upload
     build: 
@@ -29,7 +29,10 @@ services:
      - "4003:80"
     environment:
       - PORT=80
-      - NODE_ENV=development
+      - DBHOST=mongodb://db:27017
+      - DBNAME=video_service
+      - VIDEO_STORAGE_HOST=video-storage  
+      - VIDEO_STORAGE_PORT=80 
 
     restart: "no"
   db:

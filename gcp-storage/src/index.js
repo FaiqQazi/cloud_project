@@ -99,6 +99,38 @@ app.post("/upload", (req, res) => {
         });
 });
 
+app.delete("/delete", (req, res) => {
+    const videoId = req.headers.id;
+
+    if (!videoId) {
+        return res.status(400).send("Missing 'id' header for video deletion.");
+    }
+
+    console.log(`Attempting to delete video with ID: ${videoId}`);
+
+    const file = bucket.file(videoId);
+
+    // Check if the video file exists in the bucket
+    file.exists()
+        .then(([exists]) => {
+            if (!exists) {
+                console.error(`Video not found at path: ${videoId}`);
+                return res.status(404).send("Video not found in storage.");
+            }
+
+            // Delete the video file from GCS
+            return file.delete();
+        })
+        .then(() => {
+            console.log(`Video file ${videoId} deleted successfully from GCS.`);
+            res.status(200).send("Video deleted successfully.");
+        })
+        .catch(err => {
+            console.error("Error deleting video from GCS:", err);
+            res.status(500).send("Error deleting video from storage.");
+        });
+});
+
 // Starts the HTTP server
 app.listen(PORT, () => {
     console.log(`Microservice online for video storage listening on port ${PORT}`);

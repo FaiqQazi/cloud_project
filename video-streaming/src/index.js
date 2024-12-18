@@ -8,6 +8,9 @@ const app = express();
 // Enable CORS for all routes
 app.use(cors());  // Allows all origins, you can customize if needed
 
+
+app.use(express.json());  // This is important for handling POST body
+
 // Ensure all required environment variables are set
 if (!process.env.PORT) {
     throw new Error("Please specify the port number for the HTTP server with the environment variable PORT.");

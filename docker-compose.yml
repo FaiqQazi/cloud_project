@@ -1,6 +1,22 @@
 
 services:
 
+  authentication:
+    image: authentication
+    build: 
+      context: ./authentication
+      dockerfile: Dockerfile
+    container_name: authentication
+
+    ports:
+     - "4007:80"
+    environment:
+      - PORT=80
+      - DBHOST=mongodb://db:27017
+      - DBNAME=video_service
+
+    restart: "no"
+
   usage-monitoring:
     image: usage-monitoring
     build:
